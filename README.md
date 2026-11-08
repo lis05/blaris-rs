@@ -1,9 +1,11 @@
-# blaris - O(N) random-access LZ decompressor with constant memory usage
+# blaris-rs- - O(N) random-access LZ decompressor with constant memory usage
 
-blaris is a specialized LZ-based compressor for firmware and embedded systems
+> NOTE: blaris-rs is an early version of blaris, and is no longer maintained. Check [github.com/lis05/blaris](github.com/lis05/blaris)
+
+blaris-rs is a specialized LZ-based compressor for firmware and embedded systems
 where RAM is more valuable than decompression throughput.
 
-Unlike conventional LZ-family compressors, blaris does **not** require a sliding
+Unlike conventional LZ-family compressors, blaris-rs does **not** require a sliding
 history buffer during decompression. Instead, requested output bytes are
 reconstructed directly from the compressed stream using only a few dozen bytes
 of working memory.
@@ -21,7 +23,7 @@ Typical applications include:
 * diagnostic messages
 * systems with extremely limited RAM
 
-blaris intentionally trades decompression speed for:
+blaris-rs intentionally trades decompression speed for:
 
 * constant working memory (~64 B),
 * sub-kilobyte decoder (~700 B),
@@ -47,7 +49,7 @@ The current decompressor has the following properties:
 4. Memory usage is completely independent of the compression window size.
 5. No sliding history buffer is required.
 
-Unlike conventional LZ decompression, blaris does not maintain a history window.
+Unlike conventional LZ decompression, blaris-rs does not maintain a history window.
 Instead, previous bytes are reconstructed by recursively following references
 inside the compressed stream.
 
@@ -61,10 +63,10 @@ stored in compressed form.
 A conventional LZ decompressor may require an additional 16-32 KiB history
 buffer while decoding.
 
-With blaris, the firmware only needs:
+With blaris-rs, the firmware only needs:
 
 * compressed configuration data,
-* the blaris decompressor.
+* the blaris-rs decompressor.
 
 No decompression window is allocated regardless of the configured match window.
 
@@ -77,7 +79,7 @@ code when compiled for Cortex-M:
 
 ```text
 $ cargo bloat --release --target thumbv7em-none-eabihf \
-    -p blaris-size-check --bin blaris
+    -p blaris-rs-size-check --bin blaris-rs
 
  File  .text Size             Crate Name
 
@@ -104,7 +106,7 @@ real-world files.
 
 Across the tested corpus:
 
-* Blaris consistently produced compressed output equal to or slightly smaller
+* blaris-rs consistently produced compressed output equal to or slightly smaller
   than the best Heatshrink configuration.
 * Working memory is at most **64 bytes**, independent of the
   compression window. Not measured: calculated based on the implementation.
@@ -112,11 +114,11 @@ Across the tested corpus:
 * Heatshrink required between **96 bytes** and **16 KiB** of RAM depending on
   window size.
 * Performance varies based on the data. However, it is worth noting that decoding
-  longer chunks of data will be slower with blaris and the same with heatshrink.
+  longer chunks of data will be slower with blaris-rs and the same with heatshrink.
 
 ## Summary
 
-| Property                     | Blaris                                   | Heatshrink     |
+| Property                     | blaris-rs                                   | Heatshrink     |
 | ---------------------------- | ---------------------------------------- | -------------- |
 | Decoder code                 | ~694 B                                   | ~3.8 KiB       |
 | Working memory               | ~64 B                                    | ~96 B - 16 KiB |
@@ -134,7 +136,7 @@ The benchmark reports:
 
 | Decoder           | Encode      |  Size | Ratio |    @1% |    @20% |    @40% |    @60% |    @80% |   @100% |  Memory |
 | ----------------- | ----------: | ----: | ----: | -----: | ------: | ------: | ------: | ------: | ------: | ------: |
-| **Blaris**        |    14.95 ms | 3,841 | 46.8% | 0.4 µs |  9.7 µs | 19.0 µs | 29.6 µs | 24.9 µs | 56.7 µs |   ~64 B |
+| **blaris-rs**        |    14.95 ms | 3,841 | 46.8% | 0.4 µs |  9.7 µs | 19.0 µs | 29.6 µs | 24.9 µs | 56.7 µs |   ~64 B |
 | Heatshrink (W=12) |     1.12 ms | 3,890 | 47.4% | 2.0 µs | 19.5 µs | 32.9 µs | 47.4 µs | 56.1 µs | 59.4 µs |  ~4 KiB |
 | Heatshrink (W=13) |     1.22 ms | 3,977 | 48.5% | 1.7 µs | 17.0 µs | 31.3 µs | 46.9 µs | 57.8 µs | 67.0 µs |  ~8 KiB |
 | Heatshrink (W=11) |     0.96 ms | 4,022 | 49.1% | 2.1 µs | 22.4 µs | 38.0 µs | 55.2 µs | 60.7 µs | 74.3 µs |  ~2 KiB |
@@ -149,7 +151,7 @@ The benchmark reports:
 
 | Decoder           | Encode      |   Size | Ratio |    @1% |    @20% |    @40% |     @60% |     @80% |    @100% |  Memory |
 | ----------------- | ----------: | -----: | ----: | -----: | ------: | ------: | -------: | -------: | -------: | ------: |
-| **Blaris**        |   456.75 ms | 12,477 | 39.9% | 5.0 µs | 51.7 µs | 22.6 µs | 387.1 µs | 270.9 µs | 261.0 µs |   ~64 B |
+| **blaris-rs**        |   456.75 ms | 12,477 | 39.9% | 5.0 µs | 51.7 µs | 22.6 µs | 387.1 µs | 270.9 µs | 261.0 µs |   ~64 B |
 | Heatshrink (W=10) |     2.11 ms | 12,556 | 40.2% | 2.6 µs | 39.3 µs | 88.8 µs | 177.3 µs | 213.8 µs | 260.4 µs |  ~1 KiB |
 | Heatshrink (W=9)  |     1.27 ms | 12,558 | 40.2% | 2.6 µs | 38.5 µs | 93.6 µs | 164.4 µs | 225.2 µs | 268.6 µs |  ~544 B |
 | Heatshrink (W=8)  |     1.06 ms | 12,737 | 40.8% | 3.2 µs | 42.4 µs | 92.6 µs | 162.6 µs | 221.4 µs | 261.3 µs |  ~288 B |
@@ -164,7 +166,7 @@ The benchmark reports:
 
 | Decoder           | Encode      |   Size | Ratio |    @1% |     @20% |     @40% |     @60% |     @80% |    @100% |  Memory |
 | ----------------- | ----------: | -----: | ----: | -----: | -------: | -------: | -------: | -------: | -------: | ------: |
-| **Blaris**        |   369.68 ms | 19,414 | 19.0% | 3.5 µs |  83.3 µs | 208.5 µs | 306.9 µs | 465.9 µs | 498.0 µs |   ~64 B |
+| **blaris-rs**        |   369.68 ms | 19,414 | 19.0% | 3.5 µs |  83.3 µs | 208.5 µs | 306.9 µs | 465.9 µs | 498.0 µs |   ~64 B |
 | Heatshrink (W=14) |     5.88 ms | 19,457 | 19.0% | 8.4 µs |  83.0 µs | 164.3 µs | 231.2 µs | 295.5 µs | 370.4 µs | ~16 KiB |
 | Heatshrink (W=13) |     3.73 ms | 19,591 | 19.1% | 7.5 µs |  78.8 µs | 135.8 µs | 199.4 µs | 289.0 µs | 348.6 µs |  ~8 KiB |
 | Heatshrink (W=12) |     3.03 ms | 19,819 | 19.4% | 8.8 µs |  75.2 µs | 133.4 µs | 213.9 µs | 280.5 µs | 374.4 µs |  ~4 KiB |
@@ -179,7 +181,7 @@ The benchmark reports:
 
 | Decoder           | Encode       |    Size | Ratio |     @1% |     @20% |     @40% |     @60% |      @80% |     @100% |  Memory |
 | ----------------- | -----------: | ------: | ----: | ------: | -------: | -------: | -------: | --------: | --------: | ------: |
-| **Blaris**        |  2701.60 ms  | 112,422 | 52.0% | 10.1 µs |  70.9 µs | 207.6 µs | 180.6 µs |  173.9 µs |  495.1 µs |   ~64 B |
+| **blaris-rs**        |  2701.60 ms  | 112,422 | 52.0% | 10.1 µs |  70.9 µs | 207.6 µs | 180.6 µs |  173.9 µs |  495.1 µs |   ~64 B |
 | Heatshrink (W=13) |    26.50 ms  | 116,880 | 54.1% |  5.6 µs | 152.4 µs | 468.7 µs | 792.9 µs | 1043.0 µs | 1328.9 µs |  ~8 KiB |
 | Heatshrink (W=14) |    48.87 ms  | 116,888 | 54.1% |  6.1 µs | 146.8 µs | 490.3 µs | 787.5 µs | 1043.5 µs | 1261.6 µs | ~16 KiB |
 | Heatshrink (W=12) |    16.70 ms  | 117,561 | 54.4% |  5.6 µs | 133.1 µs | 442.3 µs | 746.3 µs | 1003.3 µs | 1202.5 µs |  ~4 KiB |
@@ -194,7 +196,7 @@ The benchmark reports:
 
 # Compression
 
-The blaris compressor is a split-stream optimal bit-packed LZSS encoder.
+The blaris-rs compressor is a split-stream optimal bit-packed LZSS encoder.
 
 Compressed data is divided into three streams:
 
